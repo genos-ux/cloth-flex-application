@@ -1,0 +1,33 @@
+{
+  "name": "cloth-flex-application",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^25.5.2",
+    "drizzle-kit": "^0.31.10",
+    "ts-node": "^10.9.2"
+  },
+  "peerDependencies": {
+    "typescript": "^6.0.2"
+  },
+  "scripts": {
+  "dev": "nodemon --watch 'src/**/*.ts' --exec 'bun run src/server.ts'",
+  "start": "bun run src/server.ts",
+  "build": "tsc"
+},
+  "dependencies": {
+    "@neondatabase/serverless": "^1.0.2",
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.0",
+    "drizzle-orm": "^0.45.2",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "nodemon": "^3.1.14",
+    "pg": "^8.20.0"
+  }
+}
