@@ -7,7 +7,7 @@ dotenv.config();
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL || "postgresql://dev_user:dev_pass@localhost:5433/clothflex",
   ssl: false,
-  max: 1,
+  max: 5,
 });
 
 export const db = drizzle(pool);

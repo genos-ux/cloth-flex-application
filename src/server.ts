@@ -3,6 +3,7 @@ import swaggerUi from "swagger-ui-express";
 import express from "express";
 import indexRoute from "./modules/index.route";
 import { swaggerSpec } from "./config/swagger";
+import cookieParser from "cookie-parser";
 
 
 const app = express();
@@ -10,6 +11,9 @@ const app = express();
 dotenv.config();
 
 app.use(express.json());
+
+
+app.use(cookieParser());
 
 app.use(
   "/api-docs",

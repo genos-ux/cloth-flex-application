@@ -4,12 +4,18 @@ import { User } from "../../db/schema";
 import { eq } from "drizzle-orm";
 
 export async function findUserByEmail(email: string) {
-  const users = await db
-    .select()
-    .from(User)
-    .where(eq(User.email, email));
+  try {
+    const users = await db
+      .select()
+      .from(User)
+      .where(eq(User.email, email));
 
-  return users[0];
+    console.log("Query result:", users);
+    return users[0];
+  } catch (err) {
+    console.error("Drizzle query failed:", err);
+    throw err;
+  }
 }
 
 export async function createUser(data: {

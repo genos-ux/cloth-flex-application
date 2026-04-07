@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
+import { HttpException } from "./exception/httpException";
 
 export interface ApiResponse<T> {
   success: boolean;
@@ -58,17 +59,31 @@ export function handler(
         next
       );
 
-      /*
-        If controller returned something,
-        send it as JSON
-      */
       if (result) {
         return res
           .status(result.statusCode || 200)
           .json(result);
       }
-    } catch (error) {
-      next(error);
+    } catch (error: any) {
+      console.error("ERROR:", error);
+
+      if (error instanceof HttpException) {
+        return res.status(error.statusCode).json(
+          errorResponse(
+            error.message,
+            error.statusCode,
+            null,
+            error.extra
+          )
+        );
+      }
+
+      return res.status(500).json(
+        errorResponse(
+          error.message || "Internal server error",
+          500
+        )
+      );
     }
-  };
+  }
 }

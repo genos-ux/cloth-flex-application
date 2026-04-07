@@ -1,7 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import type { Request } from "express";
-
+import type { Request, Response } from "express";
 import { successResponse } from "../../utils/apiResponse";
 
 import {
@@ -9,47 +8,32 @@ import {
     createUser,
 } from "./auth.service";
 
+import { HttpStatus } from "../../utils/httpStatus";
+import { BadRequestException } from "../../utils/exception";
+
 /*
    REGISTER
 */
 export async function register(req: Request) {
     const { name, email, password } = req.body;
 
-    /*
-       Validate input (basic)
-    */
     if (!name || !email || !password) {
-        throw new Error(
-            "Name, email and password are required"
-        );
+
+        throw new BadRequestException('Name, email and password are required', HttpStatus.BAD_REQUEST);
     }
 
-    /*
-       Check existing user
-    */
     const existingUser = await findUserByEmail(email);
 
-    if (existingUser) {
-        throw new Error(
-            "User already exists"
-        );
-    }
+    if (existingUser) throw new BadRequestException('User already exists', HttpStatus.CONFLICT);
 
-    /*
-       Hash password
-    */
-    const hashedPassword =
-        await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    /*
-       Create user
-    */
-    // const user = await createUser({
-    //         name,
-    //         email,
-    //         password: hashedPassword,
-    //         role: "customer",
-    //     });
+    const user = await createUser({
+        name,
+        email,
+        password: hashedPassword,
+        role: "customer",
+    });
 
     return successResponse(
         "User registered successfully",
@@ -61,7 +45,10 @@ export async function register(req: Request) {
 /*
    LOGIN
 */
-export async function login(req: Request) {
+export async function login(
+    req: Request,
+    res: Response
+) {
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -70,10 +57,8 @@ export async function login(req: Request) {
         );
     }
 
-    /*
-       Find user
-    */
-    const user = await findUserByEmail(email);
+    const user =
+        await findUserByEmail(email);
 
     if (!user) {
         throw new Error(
@@ -81,9 +66,6 @@ export async function login(req: Request) {
         );
     }
 
-    /*
-       Compare password
-    */
     const isMatch =
         await bcrypt.compare(
             password,
@@ -96,9 +78,6 @@ export async function login(req: Request) {
         );
     }
 
-    /*
-       Generate JWT
-    */
     const token = jwt.sign(
         {
             id: user.id,
@@ -110,11 +89,21 @@ export async function login(req: Request) {
         }
     );
 
+    res.cookie("access_token", token, {
+        httpOnly: true,
+        secure: false,
+        sameSite: "lax",
+        maxAge: 60 * 60 * 1000,
+    });
+
+    const { password: _, ...safeUser } =
+        user;
+
     return successResponse(
         "Login successful",
         {
-            token,
-            user,
+            user: safeUser,
         }
     );
+
 }

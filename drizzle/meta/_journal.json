@@ -29,6 +29,27 @@
       "when": 1775442690866,
       "tag": "0003_nice_ben_grimm",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1775482257361,
+      "tag": "0004_known_sue_storm",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1775483148540,
+      "tag": "0005_long_pestilence",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1775484850683,
+      "tag": "0006_friendly_vindicator",
+      "breakpoints": true
     }
   ]
 }
