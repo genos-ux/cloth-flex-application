@@ -10,12 +10,23 @@ import {
 
 import { HttpStatus } from "../../utils/httpStatus";
 import { BadRequestException } from "../../utils/exception";
+import { registerSchema } from "./auth.validation";
 
 /*
    REGISTER
 */
 export async function register(req: Request) {
-    const { name, email, password } = req.body;
+    const parsed = registerSchema.safeParse(req.body);
+
+    if (!parsed.success) {
+        const message =
+            parsed.error.issues[0]?.message ??
+            "Validation failed";
+
+        throw new BadRequestException(message, 400);
+    }
+
+    const { name, email, password } = parsed.data;
 
     if (!name || !email || !password) {
 
@@ -106,4 +117,21 @@ export async function login(
         }
     );
 
+}
+
+
+export async function logout(
+  req: Request,
+  res: Response
+) {
+  res.clearCookie("access_token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+  });
+
+  return successResponse(
+    "Logged out successfully",
+    null
+  );
 }

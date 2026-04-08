@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { handler } from "../../utils/apiResponse";
-import { login, register } from "./auth.controller";
+import { login, logout, register } from "./auth.controller";
+import { ensureAuthenticated } from "../../middleware/auth.middleware";
 
 
 
@@ -82,6 +83,23 @@ router.post("/register", handler(register));
 router.post(
   "/login",
   handler(login)
+);
+
+/**
+ * @swagger
+ * /api/auth/logout:
+ *   post:
+ *     summary: Logout user
+ *     tags:
+ *       - Auth
+ *     responses:
+ *       200:
+ *         description: Logged out successfully
+ */
+router.post(
+  "/logout",
+  ensureAuthenticated,
+  handler(logout)
 );
 
 export default router;
