@@ -6,7 +6,8 @@ import {
   pgEnum,
   boolean,
   text,
-  numeric
+  numeric,
+  jsonb
 } from "drizzle-orm/pg-core";
 
 
@@ -45,8 +46,12 @@ export const Product = pgTable("products", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description").notNull(),
-  price: numeric("price", { precision: 10, scale: 2 }).notNull(),
-  imageUrl: varchar("image_url", { length: 500 }).notNull(),
+  price: numeric("price", {
+    precision: 10,
+    scale: 2,
+  }).notNull(),
+
+  images: jsonb("images").$type<string[]>().notNull(),
   category: varchar("category", { length: 100 }).notNull(),
   inStock: boolean("in_stock").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow(),

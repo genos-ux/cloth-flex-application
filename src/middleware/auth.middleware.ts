@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import type { Request, Response, NextFunction } from "express";
 import { HttpStatus } from "../utils/httpStatus";
-import { BadRequestException } from "../utils/exception";
+import {BadRequestException, UnauthorizedException} from "../utils/exception";
 
 interface JwtPayload {
   id: string;
@@ -20,9 +20,8 @@ export function ensureAuthenticated(
   const token = req.cookies?.access_token;
 
   if (!token) {
-    throw new BadRequestException(
-      "Authentication required",
-      HttpStatus.UNAUTHORIZED
+    throw new UnauthorizedException(
+      "Authentication required"
     );
   }
 

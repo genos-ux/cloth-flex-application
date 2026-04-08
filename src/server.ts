@@ -4,6 +4,7 @@ import express from "express";
 import indexRoute from "./modules/index.route";
 import { swaggerSpec } from "./config/swagger";
 import cookieParser from "cookie-parser";
+import {errorHandler} from "./middleware/errorHandler.ts";
 
 
 const app = express();
@@ -22,6 +23,8 @@ app.use(
 );
 
 app.use("/api", indexRoute);
+
+app.use(errorHandler);
 
 
 const PORT = process.env.PORT || 3000;

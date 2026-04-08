@@ -1,8 +1,9 @@
 import { db } from "../../config/db";
 import { Product } from "../../db/schema";
 import { eq } from "drizzle-orm";
+import {NotFoundException} from "../../utils/exception";
 
-export async function createProductService(data: {
+export async function createProduct(data: {
   name: string;
   description: string;
   price: number;
@@ -22,7 +23,7 @@ export async function createProductService(data: {
   }
 }
 
-export async function getAllProductsService() {
+export async function getAllProducts() {
   try {
     return await db.select().from(Product);
   } catch (err) {
@@ -31,9 +32,11 @@ export async function getAllProductsService() {
   }
 }
 
-export async function getProductByIdService(id: string) {
+export async function getProductById(id: string) {
   try {
     const [product] = await db.select().from(Product).where(eq(Product.id, id));
+
+    if(!product) throw new NotFoundException('Product not found');
     return product;
   } catch (err) {
     console.error("Failed to fetch product by ID:", err);
@@ -41,7 +44,7 @@ export async function getProductByIdService(id: string) {
   }
 }
 
-export async function updateProductService(
+export async function updateProduct(
   id: string,
   data: Partial<{
     name: string;
@@ -64,7 +67,7 @@ export async function updateProductService(
   }
 }
 
-export async function deleteProductService(id: string) {
+export async function deleteProduct(id: string) {
   try {
     await db.delete(Product).where(eq(Product.id, id));
     return { message: "Product deleted successfully" };
