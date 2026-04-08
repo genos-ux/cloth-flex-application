@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import type { Request, Response } from "express";
-import { successResponse } from "../../utils/apiResponse";
+import { errorResponse, successResponse } from "../../utils/apiResponse";
 
 import {
     findUserByEmail,
@@ -10,7 +10,7 @@ import {
 
 import { HttpStatus } from "../../utils/httpStatus";
 import { BadRequestException } from "../../utils/exception";
-import { registerSchema } from "./auth.validation";
+import { loginSchema, registerSchema } from "./auth.validation";
 
 /*
    REGISTER
@@ -60,7 +60,17 @@ export async function login(
     req: Request,
     res: Response
 ) {
-    const { email, password } = req.body;
+    const parsed = loginSchema.safeParse(req.body);
+
+    if (!parsed.success) {
+        const message =
+            parsed.error.issues[0]?.message ??
+            "Validation failed";
+
+        throw new BadRequestException(message, 400);
+    }
+    
+    const { email, password } = parsed.data;
 
     if (!email || !password) {
         throw new Error(
@@ -72,9 +82,7 @@ export async function login(
         await findUserByEmail(email);
 
     if (!user) {
-        throw new Error(
-            "Invalid credentials"
-        );
+        throw new BadRequestException('Invalid credentials', HttpStatus.UNAUTHORIZED);;
     }
 
     const isMatch =
@@ -84,9 +92,7 @@ export async function login(
         );
 
     if (!isMatch) {
-        throw new Error(
-            "Invalid credentials"
-        );
+        throw new BadRequestException('Invalid credentials', HttpStatus.UNAUTHORIZED);;
     }
 
     const token = jwt.sign(
