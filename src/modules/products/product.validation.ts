@@ -9,15 +9,16 @@ export const createProductSchema = z.object({
         message: "Price must be a valid number",
       })
       .positive("Price must be positive"),
-  category: z.string().min(2, "Category is required"),
-    inStock: z
-        .transform((val) => {
-            // val can be undefined or string
-            if (val === undefined) return true; // default
-            if (val === "true") return true;
-            if (val === "false") return false;
-            return Boolean(val);
-        }),
+  categoryId: z.string().uuid("Invalid category ID"),
+    // inStock: z
+    //     .transform((val) => {
+    //         // val can be undefined or string
+    //         if (val === undefined) return true; // default
+    //         if (val === "true") return true;
+    //         if (val === "false") return false;
+    //         return Boolean(val);
+    //     }),
+    inStock: z.coerce.boolean().optional().default(true),
 });
 
 export const updateProductSchema = createProductSchema.partial();

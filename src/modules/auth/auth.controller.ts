@@ -39,6 +39,8 @@ export async function register(req: Request) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // 0010_classy_jetstream.sql
+
     const user = await createUser({
         name,
         email,

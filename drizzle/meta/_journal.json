@@ -71,6 +71,13 @@
       "when": 1775675859936,
       "tag": "0009_omniscient_owl",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1775723276576,
+      "tag": "0010_classy_jetstream",
+      "breakpoints": true
     }
   ]
 }

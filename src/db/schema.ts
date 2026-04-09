@@ -7,6 +7,7 @@ import {
   boolean,
   text,
   numeric,
+  integer,
   jsonb
 } from "drizzle-orm/pg-core";
 
@@ -50,10 +51,35 @@ export const Product = pgTable("products", {
     precision: 10,
     scale: 2,
   }).notNull(),
-
   images: jsonb("images").$type<string[]>().notNull(),
-  category: varchar("category", { length: 100 }).notNull(),
+  categoryId: uuid("category_id")
+      .notNull()
+      .references(() => Category.id, {
+        onDelete: "cascade",
+      }),
   inStock: boolean("in_stock").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow().$onUpdate(() => new Date()),
+});
+
+
+export const Category = pgTable("categories", {
+  id: uuid("id").defaultRandom().primaryKey(),
+
+  name: varchar("name", { length: 100 }).notNull(),
+
+  isVisible: boolean("is_visible")
+      .default(true)
+      .notNull(),
+
+  productsCount: integer("products_count")
+      .default(0)
+      .notNull(),
+
+  createdAt: timestamp("created_at")
+      .defaultNow(),
+
+  updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date()),
 });
