@@ -102,3 +102,57 @@ export const Category = pgTable("categories", {
       .defaultNow()
       .$onUpdate(() => new Date()),
 });
+
+
+export const orderStatusEnum = pgEnum("order_status", [
+  "PENDING",
+  "PAID",
+  "SHIPPED",
+  "CANCELLED",
+]);
+
+/* -----------------------------
+   ORDERS TABLE (HYBRID)
+------------------------------*/
+export const Order = pgTable("orders", {
+  id: uuid("id").defaultRandom().primaryKey(),
+
+  // Logged-in user (optional)
+  userId: uuid("user_id").references(() => User.id, {
+    onDelete: "set null",
+  }),
+
+  // Guest identity (optional)
+  guestId: varchar("guest_id", { length: 255 }),
+
+  // ALWAYS REQUIRED (core identity)
+  email: varchar("email", { length: 255 }).notNull(),
+
+  status: orderStatusEnum("status").default("PENDING").notNull(),
+
+  totalAmount: numeric("total_amount", {
+    precision: 10,
+    scale: 2,
+  }).notNull(),
+
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const OrderItem = pgTable("order_items", {
+  id: uuid("id").defaultRandom().primaryKey(),
+
+  orderId: uuid("order_id")
+      .references(() => Order.id, { onDelete: "cascade" })
+      .notNull(),
+
+  productId: uuid("product_id")
+      .references(() => Product.id)
+      .notNull(),
+
+  quantity: integer("quantity").notNull(),
+
+  price: numeric("price", {
+    precision: 10,
+    scale: 2,
+  }).notNull(),
+});

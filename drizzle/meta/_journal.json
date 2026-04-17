@@ -85,6 +85,13 @@
       "when": 1776434177555,
       "tag": "0011_eminent_the_hand",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1776445686372,
+      "tag": "0012_secret_james_howlett",
+      "breakpoints": true
     }
   ]
 }
