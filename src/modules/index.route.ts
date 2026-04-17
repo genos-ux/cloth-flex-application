@@ -8,5 +8,6 @@ const indexRoute: Router = Router();
 indexRoute.use("/auth", authRoute);
 indexRoute.use("/products", productRoute);
 indexRoute.use("/categories", categoryRoute);
+indexRoute.use("/orders", categoryRoute);
 
 export default indexRoute;
