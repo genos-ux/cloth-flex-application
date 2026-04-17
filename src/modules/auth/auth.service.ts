@@ -10,7 +10,7 @@ export async function findUserByEmail(email: string) {
       .from(User)
       .where(eq(User.email, email));
 
-    console.log("Query result:", users);
+    //console.log("Query result:", users);
     return users[0];
   } catch (err) {
     console.error("Drizzle query failed:", err);

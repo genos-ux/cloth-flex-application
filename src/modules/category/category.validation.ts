@@ -10,6 +10,15 @@ export const createCategorySchema = z.object({
         .boolean()
         .optional()
         .default(true),
+
+    productsCount: z
+        .coerce
+        .number()
+        .int()
+        .min(0, "Products count cannot be negative")
+        .default(0),
+
+
 });
 
 export const updateCategorySchema =

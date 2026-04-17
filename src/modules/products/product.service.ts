@@ -7,9 +7,9 @@ export async function createProduct(data: {
   name: string;
   description: string;
   price: number;
-  category: string;
+  categoryId: string;
   inStock?: boolean;
-  imageUrl: string;
+  images: string[];
 }) {
   try {
     const [product] = await db.insert(Product).values({
