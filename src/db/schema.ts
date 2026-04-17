@@ -156,3 +156,38 @@ export const OrderItem = pgTable("order_items", {
     scale: 2,
   }).notNull(),
 });
+
+export const Cart = pgTable("carts", {
+  id: uuid("id").defaultRandom().primaryKey(),
+
+  userId: uuid("user_id")
+      .references(() => User.id, {
+        onDelete: "cascade",
+      })
+      .notNull(),
+
+  createdAt: timestamp("created_at")
+      .defaultNow(),
+});
+
+
+export const CartItem = pgTable("cart_items", {
+  id: uuid("id").defaultRandom().primaryKey(),
+
+  cartId: uuid("cart_id")
+      .references(() => Cart.id, {
+        onDelete: "cascade",
+      })
+      .notNull(),
+
+  productId: uuid("product_id")
+      .references(() => Product.id)
+      .notNull(),
+
+  quantity: integer("quantity")
+      .notNull()
+      .default(1),
+
+  createdAt: timestamp("created_at")
+      .defaultNow(),
+});

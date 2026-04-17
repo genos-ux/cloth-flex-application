@@ -10,7 +10,7 @@ import {
 import {BadRequestException, NotFoundException} from "../../utils/exception";
 import {successResponse} from "../../utils/apiResponse.ts";
 
-/* ---------------- CREATE ORDER ---------------- */
+
 export const createOrderHandler = async (req: Request, res: Response) => {
     const parsed = createOrderSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -32,7 +32,7 @@ export const getAllOrdersHandler = async (req: Request, res: Response) => {
     return successResponse("Order retrieved successfully", orders, 200);
 };
 
-/* ---------------- GET ORDER BY ID ---------------- */
+
 export const getOrderByIdHandler = async (req: Request, res: Response) => {
     const order = await getOrderById(req.params.id as string);
 

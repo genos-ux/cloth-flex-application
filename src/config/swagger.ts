@@ -1,4 +1,5 @@
 import swaggerJsdoc from "swagger-jsdoc";
+import 'dotenv/config'
 
 const options = {
   definition: {
@@ -9,7 +10,8 @@ const options = {
     },
     servers: [
       {
-        url: "http://localhost:4000",
+        url: process.env.BASE_URL || "http://localhost:4000",
+        description: "API Server",
       },
     ],
   },
