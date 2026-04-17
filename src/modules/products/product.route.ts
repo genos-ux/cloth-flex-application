@@ -1,4 +1,5 @@
 import { Router } from "express";
+
 import {
     listProducts,
     getProduct,
@@ -6,11 +7,14 @@ import {
     update,
     removeProduct,
 } from "./product.controller";
-import {ensureAuthenticated, isAdmin} from "../../middleware/auth.middleware.ts";
-import {upload} from "../../middleware/upload_image.middleware.ts";
-import {updateProduct} from "./product.service.ts";
-import {handler} from "../../utils/apiResponse.ts";
 
+import {
+    ensureAuthenticated,
+    isAdmin,
+} from "../../middleware/auth.middleware.ts";
+
+import { upload } from "../../middleware/upload_image.middleware.ts";
+import { handler } from "../../utils/apiResponse.ts";
 
 const router = Router();
 
@@ -18,42 +22,82 @@ const router = Router();
  * @swagger
  * tags:
  *   name: Products
+ *   description: Product management endpoints
  */
 
+/* =========================================================
+   GET ALL PRODUCTS
+========================================================= */
 /**
  * @swagger
  * /api/products:
  *   get:
  *     summary: Get all products
  *     tags: [Products]
+ *     security:
+ *       - cookieAuth: []
  *     responses:
  *       200:
- *         description: List of products
+ *         description: Products retrieved successfully
+ *         content:
+ *           application/json:
+ *             example:
+ *               success: true
+ *               message: Products retrieved successfully
+ *               data: []
  */
-router.get("/", ensureAuthenticated, handler(listProducts));
+router.get(
+    "/",
+    ensureAuthenticated,
+    handler(listProducts)
+);
 
+/* =========================================================
+   GET PRODUCT BY ID
+========================================================= */
 /**
  * @swagger
  * /api/products/{id}:
  *   get:
- *     summary: Get a product by ID
+ *     summary: Get product by ID
  *     tags: [Products]
+ *     security:
+ *       - cookieAuth: []
  *     parameters:
  *       - in: path
  *         name: id
+ *         required: true
  *         schema:
  *           type: string
- *         required: true
- *         description: Product ID
  *     responses:
  *       200:
- *         description: Product data
+ *         description: Product retrieved successfully
+ *         content:
+ *           application/json:
+ *             example:
+ *               success: true
+ *               message: Product retrieved successfully
+ *               data:
+ *                 id: "uuid"
+ *                 name: "Premium Hoodie"
+ *                 price: "150.00"
+ *                 quantity: 10
+ *                 status: "IN_STOCK"
+ *                 level: 100
+ *       400:
+ *         description: Invalid request
  *       404:
  *         description: Product not found
  */
-router.get("/:id",ensureAuthenticated, handler(getProduct));
+router.get(
+    "/:id",
+    ensureAuthenticated,
+    handler(getProduct)
+);
 
-
+/* =========================================================
+   CREATE PRODUCT
+========================================================= */
 /**
  * @swagger
  * /api/products:
@@ -70,8 +114,11 @@ router.get("/:id",ensureAuthenticated, handler(getProduct));
  *             type: object
  *             required:
  *               - name
+ *               - description
  *               - price
- *               - category
+ *               - categoryId
+ *               - size
+ *               - quantity
  *               - images
  *             properties:
  *               name:
@@ -83,33 +130,58 @@ router.get("/:id",ensureAuthenticated, handler(getProduct));
  *               price:
  *                 type: number
  *                 example: 150
- *               category:
+ *               categoryId:
  *                 type: string
- *                 example: clothing
- *               inStock:
- *                 type: boolean
- *                 example: true
+ *                 example: "uuid"
+ *               size:
+ *                 type: string
+ *                 example: "XL"
+ *               quantity:
+ *                 type: integer
+ *                 example: 12
  *               images:
  *                 type: array
  *                 items:
  *                   type: string
  *                   format: binary
+ *
  *     responses:
  *       201:
  *         description: Product created successfully
+ *         content:
+ *           application/json:
+ *             example:
+ *               success: true
+ *               message: Product created successfully
+ *               data:
+ *                 id: "uuid"
+ *                 name: "Premium Hoodie"
+ *                 price: "150.00"
+ *                 quantity: 12
+ *                 status: "IN_STOCK"
+ *                 level: 100
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden (admin only)
  */
 router.post(
     "/",
     ensureAuthenticated,
     isAdmin,
     upload.array("images", 5),
-    handler(addProduct),
+    handler(addProduct)
 );
 
+/* =========================================================
+   UPDATE PRODUCT
+========================================================= */
 /**
  * @swagger
  * /api/products/{id}:
- *   put:
+ *   patch:
  *     summary: Update a product
  *     tags: [Products]
  *     security:
@@ -120,10 +192,11 @@ router.post(
  *         required: true
  *         schema:
  *           type: string
+ *
  *     requestBody:
  *       required: true
  *       content:
- *         multipart/form-data:
+ *         application/json:
  *           schema:
  *             type: object
  *             properties:
@@ -133,27 +206,42 @@ router.post(
  *                 type: string
  *               price:
  *                 type: number
- *               category:
+ *               categoryId:
  *                 type: string
- *               inStock:
- *                 type: boolean
- *               image:
+ *               size:
  *                 type: string
- *                 format: binary
+ *               quantity:
+ *                 type: integer
+ *
  *     responses:
  *       200:
- *         description: Product updated
+ *         description: Product updated successfully
+ *         content:
+ *           application/json:
+ *             example:
+ *               success: true
+ *               message: Product updated successfully
+ *               data:
+ *                 id: "uuid"
+ *                 name: "Updated Hoodie"
+ *                 quantity: 8
+ *                 status: "LOW"
+ *                 level: 40
  *       404:
  *         description: Product not found
+ *       400:
+ *         description: Validation error
  */
-router.put(
+router.patch(
     "/:id",
     ensureAuthenticated,
     isAdmin,
-    upload.single("image"),
-    update,
+    handler(update)
 );
 
+/* =========================================================
+   DELETE PRODUCT
+========================================================= */
 /**
  * @swagger
  * /api/products/{id}:
@@ -168,12 +256,23 @@ router.put(
  *         required: true
  *         schema:
  *           type: string
+ *
  *     responses:
  *       200:
- *         description: Product deleted
+ *         description: Product deleted successfully
+ *         content:
+ *           application/json:
+ *             example:
+ *               success: true
+ *               message: Product removed successfully
  *       404:
  *         description: Product not found
  */
-router.delete("/:id", ensureAuthenticated, isAdmin, removeProduct);
+router.delete(
+    "/:id",
+    ensureAuthenticated,
+    isAdmin,
+    handler(removeProduct)
+);
 
 export default router;

@@ -17,6 +17,14 @@ export const userRoleEnum = pgEnum(
   ["admin", "customer"]
 );
 
+export const productStatusEnum = pgEnum("product_status", [
+  "IN_STOCK",
+  "LOW",
+  "CRITICAL",
+  "OUT_OF_STOCK",
+]);
+
+
 export const User = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
 
@@ -57,7 +65,18 @@ export const Product = pgTable("products", {
       .references(() => Category.id, {
         onDelete: "cascade",
       }),
-  inStock: boolean("in_stock").default(true).notNull(),
+  size: varchar("size", {
+    length: 10,
+  }).notNull(),
+  quantity: integer("quantity")
+      .notNull()
+      .default(0),
+  level: integer("level")
+      .notNull()
+      .default(0),
+  status: productStatusEnum("status")
+      .notNull()
+      .default("OUT_OF_STOCK"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow().$onUpdate(() => new Date()),
 });
