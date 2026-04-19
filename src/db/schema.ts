@@ -111,9 +111,7 @@ export const orderStatusEnum = pgEnum("order_status", [
   "CANCELLED",
 ]);
 
-/* -----------------------------
-   ORDERS TABLE (HYBRID)
-------------------------------*/
+
 export const Order = pgTable("orders", {
   id: uuid("id").defaultRandom().primaryKey(),
 
@@ -122,10 +120,8 @@ export const Order = pgTable("orders", {
     onDelete: "set null",
   }),
 
-  // Guest identity (optional)
   guestId: varchar("guest_id", { length: 255 }),
 
-  // ALWAYS REQUIRED (core identity)
   email: varchar("email", { length: 255 }).notNull(),
 
   status: orderStatusEnum("status").default("PENDING").notNull(),
