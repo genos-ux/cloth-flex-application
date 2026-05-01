@@ -1,12 +1,17 @@
 import { db } from "../../config/db";
-import {Cart, CartItem, Order, Product} from "../../db/schema";
-import { eq, and, } from "drizzle-orm";
+import { Cart, CartItem, Product } from "../../db/schema";
+import { eq, and } from "drizzle-orm";
 
-/* -----------------------------
-   GET USER CART
-------------------------------*/
-export async function findUserCart(userId: string) {
-    return await db.select().from(Cart).where(eq(Cart.userId, userId));
+
+export async function findUserCart(
+    userId: string
+){
+    const [cart] = await db
+        .select()
+        .from(Cart)
+        .where(eq(Cart.userId, userId));
+
+    return cart;
 }
 
 export async function createCart(userId: string) {
@@ -18,10 +23,42 @@ export async function createCart(userId: string) {
     return cart;
 }
 
+
 export async function findProductById(
     productId: string
-) {
-    return await db.select().from(Product).where(eq(Product.id, productId));
+){
+    const [product] = await db
+        .select()
+        .from(Product)
+        .where(eq(Product.id, productId));
+
+    return product;
+}
+
+export async function findCartById(cartId: string) {
+    const [cart] = await db.select().from(Cart).where(eq(Cart.id, cartId))
+}
+
+export async function getOrCreateCart(
+    userId: string
+): Promise<typeof Cart.$inferSelect> {
+    const [existing] = await db
+        .select()
+        .from(Cart)
+        .where(eq(Cart.userId, userId));
+
+    if (existing) return existing;
+
+    const [cart] = await db
+        .insert(Cart)
+        .values({ userId })
+        .returning();
+
+    if (!cart) {
+        throw new Error("Failed to create cart");
+    }
+
+    return cart;
 }
 
 
@@ -29,7 +66,7 @@ export async function findCartItem(
     cartId: string,
     productId: string
 ) {
-    return await db
+    const [item] = await db
         .select()
         .from(CartItem)
         .where(
@@ -37,9 +74,10 @@ export async function findCartItem(
                 eq(CartItem.cartId, cartId),
                 eq(CartItem.productId, productId)
             )
-        )
-}
+        );
 
+    return item ?? null;
+}
 
 export async function createCartItem(
     cartId: string,
@@ -58,7 +96,6 @@ export async function createCartItem(
     return item;
 }
 
-
 export async function updateCartItemQuantity(
     id: string,
     quantity: number
@@ -69,43 +106,31 @@ export async function updateCartItemQuantity(
         .where(eq(CartItem.id, id));
 }
 
-
-// export async function incrementCartItem(
-//     id: string,
-//     quantity: number
-// ) {
-//     // const item = await db.query.CartItem.findFirst({
-//     //     where: eq(CartItem.id, id),
-//     // });
-//     const item = await db.select().from(CartItem).where(eq(CartItem.id, id))
-//
-//     if (!item) return null;
-//
-//     await db
-//         .update(CartItem)
-//         .set({
-//             quantity: item.quantity + quantity,
-//         })
-//         .where(eq(CartItem.id, id));
-//
-//     return item;
-// }
-
-export async function deleteCartItem(
-    id: string
+export async function incrementCartItem(
+    id: string,
+    quantity: number
 ) {
-    await db
-        .delete(CartItem)
+    const [item] = await db
+        .select()
+        .from(CartItem)
         .where(eq(CartItem.id, id));
+
+    if (!item) return null;
+
+    const newQty = item.quantity + quantity;
+
+    await db
+        .update(CartItem)
+        .set({ quantity: newQty })
+        .where(eq(CartItem.id, id));
+
+    return { ...item, quantity: newQty };
 }
 
-/* -----------------------------
-   CLEAR CART
-------------------------------*/
-export async function clearUserCart(
-    cartId: string
-) {
-    await db
-        .delete(CartItem)
-        .where(eq(CartItem.cartId, cartId));
+export async function deleteCartItem(id: string) {
+    await db.delete(CartItem).where(eq(CartItem.id, id));
+}
+
+export async function clearUserCart(cartId: string) {
+    await db.delete(CartItem).where(eq(CartItem.cartId, cartId));
 }

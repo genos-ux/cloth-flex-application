@@ -10,9 +10,13 @@ const options = {
     },
     servers: [
       {
-        url: process.env.BASE_URL || "http://localhost:4000",
+        url: process.env.BASE_URL,
         description: "API Server",
       },
+      {
+        url: "http://localhost:4000",
+        description: "Local host Server"
+      }
     ],
   },
   apis: ["./src/modules/**/*.ts",],

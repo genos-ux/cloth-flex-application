@@ -95,43 +95,25 @@ import {
     getAllProducts,
     getProductById,
     updateProduct,
-    deleteProduct,
+    deleteProduct, addMultipleImages,
 } from "./product.service";
 
 import { successResponse } from "../../utils/apiResponse";
 import cloudinary from "../../config/cloudinary.ts";
 
-/* -----------------------------
-   CREATE PRODUCT
-------------------------------*/
-// Your config with API keys
 
 export const addProduct = async (req: Request, res: Response) => {
     const parsed = createProductSchema.safeParse(req.body);
+
     if (!parsed.success) {
-        throw new BadRequestException(parsed.error?.issues?.[0]?.message || "Invalid request");
+        throw new BadRequestException(
+            parsed.error?.issues?.[0]?.message || "Invalid request"
+        );
     }
-
-    const files = req.files as Express.Multer.File[];
-    if (!files || files.length === 0) {
-        throw new BadRequestException("At least one image is required");
-    }
-
-    const uploadPromises = files.map(async (file) => {
-        const b64 = Buffer.from(file.buffer).toString("base64");
-        const dataURI = `data:${file.mimetype};base64,${b64}`;
-
-        const result = await cloudinary.uploader.upload(dataURI, {
-            folder: "clothflex/products",
-        });
-        return result.secure_url;
-    });
-
-    const imageUrls = await Promise.all(uploadPromises);
 
     const product = await createProduct({
         ...parsed.data,
-        images: imageUrls,
+        images: [], // 👈 important change
     });
 
     return successResponse("Product created successfully", product, 201);
@@ -151,6 +133,37 @@ export async function listProducts(
         products,
         200
     );
+}
+
+
+export async function uploadProductImages(req: Request, res: Response) {
+    const  productId  = req.params.productId as string;
+
+    const files = req.files as Express.Multer.File[];
+
+    if (!files || files.length === 0) {
+        throw new BadRequestException("At least one image is required");
+    }
+    
+    const uploadPromises = files.map(async (file) => {
+        const b64 = Buffer.from(file.buffer).toString("base64");
+        const dataURI = `data:${file.mimetype};base64,${b64}`;
+
+        const result = await cloudinary.uploader.upload(dataURI, {
+            folder: "clothflex/products",
+        });
+
+        return result.secure_url;
+    });
+
+    const imageUrls = await Promise.all(uploadPromises);
+
+    const result = await addMultipleImages(
+        productId,
+        imageUrls
+    );
+
+    return res.json(result);
 }
 
 /* -----------------------------

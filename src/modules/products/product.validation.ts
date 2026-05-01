@@ -30,8 +30,4 @@ export const createProductSchema = z.object({
         .int("Quantity must be an integer")
         .min(0, "Quantity cannot be negative")
         .default(0),
-
-    // images: z
-    //     .array(z.string().url("Invalid image URL"))
-    //     .min(1, "At least one image is required"),
 });

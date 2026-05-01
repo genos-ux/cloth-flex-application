@@ -5,7 +5,7 @@ import {
     getProduct,
     addProduct,
     update,
-    removeProduct,
+    removeProduct, uploadProductImages,
 } from "./product.controller";
 
 import {
@@ -16,7 +16,7 @@ import {
 import { upload } from "../../middleware/upload_image.middleware.ts";
 import { handler } from "../../utils/apiResponse.ts";
 
-const router = Router();
+const productRoute = Router();
 
 /**
  * @swagger
@@ -46,15 +46,12 @@ const router = Router();
  *               message: Products retrieved successfully
  *               data: []
  */
-router.get(
+productRoute.get(
     "/",
     ensureAuthenticated,
     handler(listProducts)
 );
 
-/* =========================================================
-   GET PRODUCT BY ID
-========================================================= */
 /**
  * @swagger
  * /api/products/{id}:
@@ -89,15 +86,13 @@ router.get(
  *       404:
  *         description: Product not found
  */
-router.get(
+productRoute.get(
     "/:id",
     ensureAuthenticated,
     handler(getProduct)
 );
 
-/* =========================================================
-   CREATE PRODUCT
-========================================================= */
+
 /**
  * @swagger
  * /api/products:
@@ -139,11 +134,6 @@ router.get(
  *               quantity:
  *                 type: integer
  *                 example: 12
- *               images:
- *                 type: array
- *                 items:
- *                   type: string
- *                   format: binary
  *
  *     responses:
  *       201:
@@ -167,7 +157,7 @@ router.get(
  *       403:
  *         description: Forbidden (admin only)
  */
-router.post(
+productRoute.post(
     "/",
     ensureAuthenticated,
     isAdmin,
@@ -175,9 +165,49 @@ router.post(
     handler(addProduct)
 );
 
-/* =========================================================
-   UPDATE PRODUCT
-========================================================= */
+/**
+ * @swagger
+ * /api/products/{productId}/images:
+ *   post:
+ *     summary: Upload product images
+ *     tags: [Products]
+ *     parameters:
+ *       - in: path
+ *         name: productId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Product ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - images
+ *             properties:
+ *               images:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *     responses:
+ *       200:
+ *         description: Images uploaded successfully
+ *       400:
+ *         description: Bad request
+ *       404:
+ *         description: Product not found
+ */
+productRoute.post(
+    "/:productId/images",
+    ensureAuthenticated,
+    isAdmin,
+    upload.array("images", 5),
+    handler(uploadProductImages)
+);
+
 /**
  * @swagger
  * /api/products/{id}:
@@ -232,7 +262,7 @@ router.post(
  *       400:
  *         description: Validation error
  */
-router.patch(
+productRoute.patch(
     "/:id",
     ensureAuthenticated,
     isAdmin,
@@ -268,11 +298,11 @@ router.patch(
  *       404:
  *         description: Product not found
  */
-router.delete(
+productRoute.delete(
     "/:id",
     ensureAuthenticated,
     isAdmin,
     handler(removeProduct)
 );
 
-export default router;
+export default productRoute;

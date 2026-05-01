@@ -1,7 +1,7 @@
 import { db } from "../../config/db";
 import { Order, OrderItem, Product } from "../../db/schema";
 import { eq } from "drizzle-orm";
-import {BadRequestException} from "../../utils/exception";
+import {BadRequestException, NotFoundException} from "../../utils/exception";
 
 export async function createOrder(data: any) {
     const productIds = data.items.map((i: any) => i.productId);
@@ -15,7 +15,7 @@ export async function createOrder(data: any) {
     const items = data.items.map((item: any) => {
         const product = products.find((p) => p.id === item.productId);
 
-        if (!product) throw new Error("Product not found");
+        if (!product) throw new NotFoundException("Product not found");
 
         const price = Number(product.price);
         total += price * item.quantity;

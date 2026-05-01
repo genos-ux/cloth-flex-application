@@ -2,6 +2,7 @@ import { db } from "../../config/db";
 import {Category, Product} from "../../db/schema";
 import { eq } from "drizzle-orm";
 import {BadRequestException, NotFoundException} from "../../utils/exception";
+import {findProductById} from "../carts/cart.service.ts";
 
 
 function calculateInventory(quantity: number) {
@@ -142,6 +143,33 @@ export async function updateProduct(
     console.error("Failed to update product:", err);
     throw err;
   }
+}
+
+
+export async function addMultipleImages(productId: string, imageUrls: string[]) {
+  const product = await findProductById(productId);
+
+  if (!product) {
+    throw new Error("Product not found");
+  }
+
+  const existingImages = product.images || [];
+
+  const updatedImages = [...existingImages, ...imageUrls];
+
+  const [updatedProduct] = await db
+      .update(Product)
+      .set({
+        images: updatedImages,
+      })
+      .where(eq(Product.id, productId))
+      .returning();
+
+  return {
+    success: true,
+    message: "Images added successfully",
+    data: updatedProduct,
+  };
 }
 
 
