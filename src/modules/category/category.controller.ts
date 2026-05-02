@@ -43,11 +43,8 @@ export async function getAllCategoriesHandler(
     try {
         const categories =
             await getAllCategories();
-
-        return res.status(200).json({
-            data: categories,
-        });
-        //return successResponse("Categories retrieved successfully", categories, 200);
+        
+        return successResponse("Categories retrieved successfully", categories, 200);
     } catch (error: any) {
         return res.status(500).json({
             message: error.message,

@@ -21,7 +21,7 @@ export async function createCategory(data: {
         .values({
             name: data.name,
             isVisible: data.isVisible ?? true,
-            productsCount: data.productsCount
+            productsCount: 0
         })
         .returning();
 
@@ -58,6 +58,15 @@ export async function updateCategory(
         .set(data)
         .where(eq(Category.id, id))
         .returning();
+
+    const existingCategory = await db
+        .select()
+        .from(Category)
+        .where(eq(Category.name, data.name!));
+
+    if (existingCategory.length > 0 && existingCategory[0]?.id !== id) {
+        throw new Error("Category name already exists");
+    }
 
     return category;
 }
