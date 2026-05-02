@@ -36,7 +36,9 @@ export async function findProductById(
 }
 
 export async function findCartById(cartId: string) {
-    const [cart] = await db.select().from(Cart).where(eq(Cart.id, cartId))
+    const [cart] = await db.select().from(Cart).where(eq(Cart.id, cartId));
+
+    return cart;
 }
 
 export async function getOrCreateCart(
@@ -104,27 +106,6 @@ export async function updateCartItemQuantity(
         .update(CartItem)
         .set({ quantity })
         .where(eq(CartItem.id, id));
-}
-
-export async function incrementCartItem(
-    id: string,
-    quantity: number
-) {
-    const [item] = await db
-        .select()
-        .from(CartItem)
-        .where(eq(CartItem.id, id));
-
-    if (!item) return null;
-
-    const newQty = item.quantity + quantity;
-
-    await db
-        .update(CartItem)
-        .set({ quantity: newQty })
-        .where(eq(CartItem.id, id));
-
-    return { ...item, quantity: newQty };
 }
 
 export async function deleteCartItem(id: string) {

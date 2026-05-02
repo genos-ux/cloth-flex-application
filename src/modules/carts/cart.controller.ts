@@ -16,10 +16,13 @@ import {
     updateCartItemQuantity,
     deleteCartItem,
     clearUserCart,
-    incrementCartItem, getOrCreateCart
+    getOrCreateCart
 } from "./cart.service";
-import {NotFoundException} from "../../utils/exception";
+import {BadRequestException, NotFoundException} from "../../utils/exception";
 import {successResponse} from "../../utils/apiResponse.ts";
+import {db} from "../../config/db.ts";
+import {CartItem, Product} from "../../db/schema.ts";
+import {eq} from "drizzle-orm";
 
 
 export async function getCart(
@@ -29,15 +32,28 @@ export async function getCart(
     try {
         const userId = (req as any).user.id;
 
-        const cart = await findUserCart(userId);
+        const cart = await getOrCreateCart(userId);
 
-        return res.status(200).json({
-            message: "Cart retrieved successfully",
-            data: cart,
-        });
-    } catch {
-        return res.status(500).json({
-            message: "Failed to get cart",
+        const items = await db
+            .select({
+                id: CartItem.id,
+                quantity: CartItem.quantity,
+                productId: Product.id,
+                name: Product.name,
+                price: Product.price,
+                images: Product.images,
+            })
+            .from(CartItem)
+            .leftJoin(Product, eq(CartItem.productId, Product.id))
+            .where(eq(CartItem.cartId, cart.id));
+
+        return successResponse("Cart retrieved successfully", {
+            ...cart,
+            items,
+        }, 200);
+    } catch (error: any) {
+        return res.status(error.statusCode || 500).json({
+            message: error.message || "Something went wrong",
         });
     }
 }
@@ -66,20 +82,24 @@ export async function addToCart(
             throw new NotFoundException("Product not found");
         }
 
+        if (product.quantity < quantity) {
+            throw new BadRequestException("Insufficient stock");
+        }
+
         const cart = await getOrCreateCart(userId);
 
-        const existingItem = await findCartItem(
-            cart.id,
-            productId
-        );
+        const existingItem = await findCartItem(cart.id, productId);
 
         if (existingItem) {
-            await incrementCartItem(
-                existingItem.id,
-                quantity
-            );
+            const newQty = existingItem.quantity + quantity;
 
-            return successResponse("Cart item quantity updated",null, 200);
+            if (product.quantity < newQty) {
+                throw new BadRequestException("Exceeds available stock");
+            }
+
+            await updateCartItemQuantity(existingItem.id, newQty);
+
+            return successResponse("Cart updated", null, 200);
         }
 
         const item = await createCartItem(
@@ -89,9 +109,9 @@ export async function addToCart(
         );
 
         return successResponse("Item added to cart", item, 201);
-    } catch (error) {
-        return res.status(500).json({
-            message: "Failed to add item",
+    } catch (error: any) {
+        return res.status(error.statusCode || 500).json({
+            message: error.message || "Something went wrong",
         });
     }
 }
@@ -112,6 +132,21 @@ export async function updateCartItem(
             });
         }
 
+        const userId = (req as any).user.id;
+        const cart = await getOrCreateCart(userId);
+
+        const item = await db
+            .select()
+            .from(CartItem)
+            .where(eq(CartItem.id, params.data.id))
+            .then(res => res[0]);
+
+        if (!item || item.cartId !== cart.id) {
+            return res.status(403).json({
+                message: "Unauthorized",
+            });
+        }
+
         const body =
             updateCartItemSchema.safeParse(
                 req.body
@@ -125,6 +160,14 @@ export async function updateCartItem(
             });
         }
 
+        const product = await findProductById(item.productId);
+
+        if (!product) throw new NotFoundException("Product not found");
+
+        if (product.quantity < body.data.quantity) {
+            throw new BadRequestException("Exceeds available stock");
+        }
+
         await updateCartItemQuantity(
             params.data.id,
             body.data.quantity
@@ -133,10 +176,9 @@ export async function updateCartItem(
         return res.status(200).json({
             message: "Cart item updated",
         });
-    } catch {
-        return res.status(500).json({
-            message:
-                "Failed to update cart item",
+    } catch (error: any) {
+        return res.status(error.statusCode || 500).json({
+            message: error.message || "Something went wrong",
         });
     }
 }
@@ -147,6 +189,7 @@ export async function removeCartItem(
     res: Response
 ) {
     try {
+        const userId = (req as any).user.id as string;
         const params =
             cartItemParamsSchema.safeParse(
                 req.params
@@ -160,7 +203,11 @@ export async function removeCartItem(
 
         const cart = await getOrCreateCart(userId);
 
-        const item = await findCartItemById(params.data.id);
+        const item = await db
+            .select()
+            .from(CartItem)
+            .where(eq(CartItem.id, params.data.id))
+            .then(res => res[0]);
 
         if (!item || item.cartId !== cart.id) {
             return res.status(403).json({
@@ -176,17 +223,14 @@ export async function removeCartItem(
             message:
                 "Item removed from cart",
         });
-    } catch {
-        return res.status(500).json({
-            message:
-                "Failed to remove item",
+    } catch (error: any) {
+        return res.status(error.statusCode || 500).json({
+            message: error.message || "Something went wrong",
         });
     }
 }
 
-/* -----------------------------
-   CLEAR CART
-------------------------------*/
+
 export async function clearCart(
     req: Request,
     res: Response
@@ -209,10 +253,9 @@ export async function clearCart(
             message:
                 "Cart cleared successfully",
         });
-    } catch {
-        return res.status(500).json({
-            message:
-                "Failed to clear cart",
+    } catch (error: any) {
+        return res.status(error.statusCode || 500).json({
+            message: error.message || "Something went wrong",
         });
     }
 }
