@@ -3,12 +3,20 @@ import { Order, OrderItem, Product } from "../../db/schema";
 import { eq } from "drizzle-orm";
 import {BadRequestException, NotFoundException} from "../../utils/exception";
 
+import { inArray } from "drizzle-orm";
+import {calculateInventory} from "../products/product.service.ts";
+
 export async function createOrder(data: any) {
+    if (!data.items || data.items.length === 0) {
+        throw new BadRequestException("Order must contain at least one item");
+    }
+
     const productIds = data.items.map((i: any) => i.productId);
 
     const products = await db
         .select()
-        .from(Product);
+        .from(Product)
+        .where(inArray(Product.id, productIds));
 
     let total = 0;
 
@@ -17,33 +25,59 @@ export async function createOrder(data: any) {
 
         if (!product) throw new NotFoundException("Product not found");
 
+        if (product.quantity < item.quantity) {
+            throw new BadRequestException(
+                `${product.name} has insufficient stock`
+            );
+        }
+
         const price = Number(product.price);
         total += price * item.quantity;
 
         return {
+            product,
             productId: item.productId,
             quantity: item.quantity,
             price: product.price,
         };
     });
 
-    const [order] = await db.insert(Order).values({
-        userId: data.userId || null,
-        guestId: data.guestId || null,
-        email: data.email,
-        totalAmount: total.toString(),
-    }).returning();
+    return await db.transaction(async (tx) => {
+        const [order] = await tx
+            .insert(Order)
+            .values({
+                userId: data.userId || null,
+                guestId: data.guestId || null,
+                email: data.email,
+                totalAmount: total.toString(),
+            })
+            .returning();
 
-    if(!order) throw new BadRequestException('Order creation failed');
+        await tx.insert(OrderItem).values(
+            items.map((i: any) => ({
+                orderId: order?.id,
+                productId: i.productId,
+                quantity: i.quantity,
+                price: i.price,
+            }))
+        );
 
-    await db.insert(OrderItem).values(
-        items.map((i: any) => ({
-            orderId: order.id,
-            ...i,
-        }))
-    );
+        for (const item of items) {
+            const newQty = item.product.quantity - item.quantity;
+            const { status, level } = calculateInventory(newQty);
 
-    return order;
+            await tx
+                .update(Product)
+                .set({
+                    quantity: newQty,
+                    status,
+                    level,
+                })
+                .where(eq(Product.id, item.productId));
+        }
+
+        return order;
+    });
 }
 
 
@@ -58,7 +92,19 @@ export async function getOrderById(id: string) {
         .from(Order)
         .where(eq(Order.id, id));
 
-    return order;
+    if (!order) {
+        throw new NotFoundException("Order not found");
+    }
+
+    const items = await db
+        .select()
+        .from(OrderItem)
+        .where(eq(OrderItem.orderId, id));
+
+    return {
+        ...order,
+        items,
+    };
 }
 
 
@@ -69,7 +115,6 @@ export async function getUserOrders(userId: string) {
         .where(eq(Order.userId, userId));
 }
 
-/* ---------------- DELETE ORDER ---------------- */
 export async function deleteOrder(id: string) {
     const [order] = await db
         .delete(Order)

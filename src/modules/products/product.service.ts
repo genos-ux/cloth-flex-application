@@ -1,11 +1,11 @@
 import { db } from "../../config/db";
 import {Category, Product} from "../../db/schema";
-import { eq } from "drizzle-orm";
+import {desc, eq, sql} from "drizzle-orm";
 import {BadRequestException, NotFoundException} from "../../utils/exception";
 import {findProductById} from "../carts/cart.service.ts";
 
 
-function calculateInventory(quantity: number) {
+export function calculateInventory(quantity: number) {
   let status: "IN_STOCK" | "LOW" | "CRITICAL" | "OUT_OF_STOCK";
   let level: number;
 
@@ -45,9 +45,9 @@ export async function createProduct(data: {
         .from(Product)
         .where(eq(Product.name, data.name));
 
-    // if (existingProduct.length > 0) {
-    //   throw new BadRequestException("Category name already exists");
-    // }
+    if (existingProduct.length > 0) {
+      throw new BadRequestException("Product already exists");
+    }
 
     const [product] = await db
         .insert(Product)
@@ -64,6 +64,13 @@ export async function createProduct(data: {
         })
         .returning();
 
+    await db
+        .update(Category)
+        .set({
+          productsCount: sql`${Category.productsCount} + 1`,
+        })
+        .where(eq(Category.id, data.categoryId));
+
     return product;
   } catch (err) {
     console.error("Failed to create product:", err);
@@ -74,7 +81,10 @@ export async function createProduct(data: {
 
 export async function getAllProducts() {
   try {
-    return await db.select().from(Product);
+    return await db
+        .select()
+        .from(Product)
+        .orderBy(desc(Product.createdAt));
   } catch (err) {
     console.error("Failed to fetch products:", err);
     throw err;
@@ -182,6 +192,13 @@ export async function deleteProduct(id: string) {
 
     if (!product)
       throw new NotFoundException("Product not found");
+
+    await db
+        .update(Category)
+        .set({
+          productsCount: sql`${Category.productsCount} - 1`,
+        })
+        .where(eq(Category.id, product.categoryId));
 
     return {
       message: "Product deleted successfully",

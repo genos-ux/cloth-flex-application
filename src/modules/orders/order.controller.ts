@@ -43,13 +43,15 @@ export const getOrderByIdHandler = async (req: Request, res: Response) => {
     return successResponse("Order retrieved successfully", order, 200);
 };
 
-/* ---------------- USER ORDERS ---------------- */
+
 export const getUserOrdersHandler = async (req: Request, res: Response) => {
     const userId = (req as any).user.id;
 
     const orders = await getUserOrders(userId);
 
-    if(!orders) throw new NotFoundException("Order not found");
+    if (orders.length === 0) {
+        return successResponse("No orders found", [], 200);
+    }
 
     return successResponse("User's order retrieved successfully", orders, 200);
 };
