@@ -5,7 +5,7 @@ import {
     getAllOrders,
     getOrderById,
     getUserOrders,
-    deleteOrder,
+    deleteOrder, getOrderStats,
 } from "./orders.service.ts";
 import {BadRequestException, NotFoundException} from "../../utils/exception";
 import {successResponse} from "../../utils/apiResponse.ts";
@@ -42,6 +42,16 @@ export const getOrderByIdHandler = async (req: Request, res: Response) => {
 
     return successResponse("Order retrieved successfully", order, 200);
 };
+
+export async function getOrderStatsHandler(req: Request, res: Response) {
+    const stats = await getOrderStats();
+
+    return successResponse(
+        "Order stats retrieved successfully",
+        stats,
+        200
+    );
+}
 
 
 export const getUserOrdersHandler = async (req: Request, res: Response) => {

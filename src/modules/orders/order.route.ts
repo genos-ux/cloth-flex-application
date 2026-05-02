@@ -12,8 +12,9 @@ import {
     ensureAuthenticated,
     isAdmin,
 } from "../../middleware/auth.middleware";
+import {handler} from "../../utils/apiResponse.ts";
 
-const router = Router();
+const orderRoute = Router();
 
 /**
  * @swagger
@@ -80,7 +81,7 @@ const router = Router();
  *       500:
  *         description: Server error
  */
-router.post("/", createOrderHandler);
+orderRoute.post("/", createOrderHandler);
 
 /**
  * @swagger
@@ -102,11 +103,40 @@ router.post("/", createOrderHandler);
  *       403:
  *         description: Forbidden
  */
-router.get(
+orderRoute.get(
     "/",
     ensureAuthenticated,
     isAdmin,
     getAllOrdersHandler
+);
+
+/**
+ * @swagger
+ * /api/orders/stats:
+ *   get:
+ *     summary: Get order statistics for dashboard
+ *     tags: [Orders]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Order stats retrieved successfully
+ *         content:
+ *           application/json:
+ *             example:
+ *               success: true
+ *               message: Order stats retrieved successfully
+ *               data:
+ *                 totalOrders: 120
+ *                 pending: 10
+ *                 shipped: 80
+ *                 returned: 5
+ */
+orderRoute.get(
+    "/stats",
+    ensureAuthenticated,
+    isAdmin,
+    handler(getOrderByIdHandler)
 );
 
 /**
@@ -126,7 +156,7 @@ router.get(
  *       401:
  *         description: Unauthorized
  */
-router.get(
+orderRoute.get(
     "/user",
     ensureAuthenticated,
     getUserOrdersHandler
@@ -161,7 +191,7 @@ router.get(
  *       401:
  *         description: Unauthorized
  */
-router.get(
+orderRoute.get(
     "/:id",
     ensureAuthenticated,
     getOrderByIdHandler
@@ -199,11 +229,11 @@ router.get(
  *       403:
  *         description: Forbidden
  */
-router.delete(
+orderRoute.delete(
     "/:id",
     ensureAuthenticated,
     isAdmin,
     deleteOrderHandler
 );
 
-export default router;
+export default orderRoute;

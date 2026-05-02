@@ -55,6 +55,7 @@ export const Product = pgTable("products", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description").notNull(),
+  sku: varchar("sku", { length: 50 }).unique().notNull(),
   price: numeric("price", {
     precision: 10,
     scale: 2,
@@ -115,7 +116,7 @@ export const orderStatusEnum = pgEnum("order_status", [
 export const Order = pgTable("orders", {
   id: uuid("id").defaultRandom().primaryKey(),
 
-  // Logged-in user (optional)
+  
   userId: uuid("user_id").references(() => User.id, {
     onDelete: "set null",
   }),

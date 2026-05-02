@@ -32,19 +32,37 @@ const productRoute = Router();
  * @swagger
  * /api/products:
  *   get:
- *     summary: Get all products
+ *     summary: Get all products with pagination and filters
  *     tags: [Products]
- *     security:
- *       - cookieAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         example: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         example: 10
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         example: hoodie
+ *       - in: query
+ *         name: categoryId
+ *         schema:
+ *           type: string
+ *         example: "uuid"
+ *       - in: query
+ *         name: size
+ *         schema:
+ *           type: string
+ *         example: "XL"
  *     responses:
  *       200:
  *         description: Products retrieved successfully
- *         content:
- *           application/json:
- *             example:
- *               success: true
- *               message: Products retrieved successfully
- *               data: []
  */
 productRoute.get(
     "/",

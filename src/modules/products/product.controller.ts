@@ -119,18 +119,30 @@ export const addProduct = async (req: Request, res: Response) => {
     return successResponse("Product created successfully", product, 201);
 };
 
-/* -----------------------------
-   LIST PRODUCTS
-------------------------------*/
-export async function listProducts(
-    req: Request,
-    res: Response
-) {
-    const products = await getAllProducts();
+
+export async function listProducts(req: Request, res: Response) {
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+
+    const search = req.query.search as string | undefined;
+    const categoryId = req.query.categoryId as string | undefined;
+    const size = req.query.size as string | undefined;
+
+    const products = await getAllProducts({
+        page,
+        limit,
+        search,
+        categoryId,
+        size,
+    });
 
     return successResponse(
         "Products retrieved successfully",
-        products,
+        {
+            page,
+            limit,
+            data: products,
+        },
         200
     );
 }

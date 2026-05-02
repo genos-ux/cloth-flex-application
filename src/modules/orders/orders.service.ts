@@ -1,6 +1,6 @@
 import { db } from "../../config/db";
-import { Order, OrderItem, Product } from "../../db/schema";
-import { eq } from "drizzle-orm";
+import {Order, OrderItem, Product, User} from "../../db/schema";
+import {eq, sql} from "drizzle-orm";
 import {BadRequestException, NotFoundException} from "../../utils/exception";
 
 import { inArray } from "drizzle-orm";
@@ -82,7 +82,63 @@ export async function createOrder(data: any) {
 
 
 export async function getAllOrders() {
-    return await db.select().from(Order);
+    const orders = await db.select().from(Order);
+    const users = await db.select().from(User);
+    const items = await db.select().from(OrderItem);
+    const products = await db.select().from(Product);
+
+    return orders.map((order) => {
+        const user = users.find((u) => u.id === order.userId);
+
+        const orderItems = items
+            .filter((i) => i.orderId === order.id)
+            .map((item) => {
+                const product = products.find((p) => p.id === item.productId);
+
+                return {
+                    name: product?.name,
+                    size: product?.size,
+                    quantity: item.quantity,
+                    price: item.price,
+                };
+            });
+
+        return {
+            id: order.id,
+
+            customerName: user?.name || "Guest",
+            email: order.email,
+
+            items: orderItems,
+
+            date: order.createdAt,
+            status: order.status,
+
+            totalAmount: order.totalAmount,
+        };
+    });
+}
+
+export async function getOrderStats() {
+    const all = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(Order);
+
+    const pending = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(Order)
+        .where(eq(Order.status, "PENDING"));
+
+    const shipped = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(Order)
+        .where(eq(Order.status, "SHIPPED"));
+
+    return {
+        totalOrders: Number(all[0]?.count),
+        pending: Number(pending[0]?.count),
+        shipped: Number(shipped[0]?.count),
+    };
 }
 
 

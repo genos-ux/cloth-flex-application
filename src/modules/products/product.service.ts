@@ -1,8 +1,14 @@
 import { db } from "../../config/db";
 import {Category, Product} from "../../db/schema";
-import {desc, eq, sql} from "drizzle-orm";
+import {and, desc, eq, ilike, sql} from "drizzle-orm";
 import {BadRequestException, NotFoundException} from "../../utils/exception";
 import {findProductById} from "../carts/cart.service.ts";
+
+function generateSKU(name: string) {
+    const prefix = name.slice(0, 4).toUpperCase();
+    const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+    return `${prefix}-${random}`;
+}
 
 
 export function calculateInventory(quantity: number) {
@@ -59,6 +65,7 @@ export async function createProduct(data: {
           size: data.size,
           quantity: data.quantity ?? 0,
           images: data.images,
+            sku: generateSKU(data.name),
           status,
           level,
         })
@@ -79,16 +86,42 @@ export async function createProduct(data: {
 }
 
 
-export async function getAllProducts() {
-  try {
-    return await db
+
+
+export async function getAllProducts({page = 1, limit = 10, search, categoryId,size,}: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    categoryId?: string;
+    size?: string;
+}) {
+    const offset = (page - 1) * limit;
+
+    const conditions = [];
+
+    // search by product name
+    if (search) {
+        conditions.push(ilike(Product.name, `%${search}%`));
+    }
+
+    // filter by category
+    if (categoryId) {
+        conditions.push(eq(Product.categoryId, categoryId));
+    }
+
+    // filter by size
+    if (size) {
+        conditions.push(eq(Product.size, size));
+    }
+
+    const products = await db
         .select()
         .from(Product)
-        .orderBy(desc(Product.createdAt));
-  } catch (err) {
-    console.error("Failed to fetch products:", err);
-    throw err;
-  }
+        .where(conditions.length ? and(...conditions) : undefined)
+        .limit(limit)
+        .offset(offset);
+
+    return products;
 }
 
 
