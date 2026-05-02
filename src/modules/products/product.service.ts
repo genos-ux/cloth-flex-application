@@ -45,9 +45,9 @@ export async function createProduct(data: {
         .from(Product)
         .where(eq(Product.name, data.name));
 
-    if (existingProduct.length > 0) {
-      throw new BadRequestException("Category name already exists");
-    }
+    // if (existingProduct.length > 0) {
+    //   throw new BadRequestException("Category name already exists");
+    // }
 
     const [product] = await db
         .insert(Product)

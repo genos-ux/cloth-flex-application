@@ -104,7 +104,7 @@ productRoute.get(
  *     requestBody:
  *       required: true
  *       content:
- *         multipart/form-data:
+ *         application/json:
  *           schema:
  *             type: object
  *             required:
@@ -114,7 +114,6 @@ productRoute.get(
  *               - categoryId
  *               - size
  *               - quantity
- *               - images
  *             properties:
  *               name:
  *                 type: string
@@ -161,7 +160,6 @@ productRoute.post(
     "/",
     ensureAuthenticated,
     isAdmin,
-    upload.array("images", 5),
     handler(addProduct)
 );
 

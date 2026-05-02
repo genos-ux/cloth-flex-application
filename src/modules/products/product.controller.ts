@@ -106,14 +106,14 @@ export const addProduct = async (req: Request, res: Response) => {
     const parsed = createProductSchema.safeParse(req.body);
 
     if (!parsed.success) {
-        throw new BadRequestException(
+        throw new Error(
             parsed.error?.issues?.[0]?.message || "Invalid request"
         );
     }
 
     const product = await createProduct({
         ...parsed.data,
-        images: [], // 👈 important change
+        images: [],
     });
 
     return successResponse("Product created successfully", product, 201);
@@ -144,7 +144,7 @@ export async function uploadProductImages(req: Request, res: Response) {
     if (!files || files.length === 0) {
         throw new BadRequestException("At least one image is required");
     }
-    
+
     const uploadPromises = files.map(async (file) => {
         const b64 = Buffer.from(file.buffer).toString("base64");
         const dataURI = `data:${file.mimetype};base64,${b64}`;
