@@ -81,7 +81,7 @@ const orderRoute = Router();
  *       500:
  *         description: Server error
  */
-orderRoute.post("/", createOrderHandler);
+orderRoute.post("/",ensureAuthenticated, handler(createOrderHandler));
 
 /**
  * @swagger
@@ -107,7 +107,7 @@ orderRoute.get(
     "/",
     ensureAuthenticated,
     isAdmin,
-    getAllOrdersHandler
+    handler(getAllOrdersHandler)
 );
 
 /**
@@ -159,7 +159,7 @@ orderRoute.get(
 orderRoute.get(
     "/user",
     ensureAuthenticated,
-    getUserOrdersHandler
+    handler(getUserOrdersHandler)
 );
 
 /**
@@ -194,7 +194,7 @@ orderRoute.get(
 orderRoute.get(
     "/:id",
     ensureAuthenticated,
-    getOrderByIdHandler
+    handler(getOrderByIdHandler)
 );
 
 /**
@@ -233,7 +233,7 @@ orderRoute.delete(
     "/:id",
     ensureAuthenticated,
     isAdmin,
-    deleteOrderHandler
+    handler(deleteOrderHandler)
 );
 
 export default orderRoute;
