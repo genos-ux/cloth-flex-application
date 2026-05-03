@@ -13,7 +13,7 @@ indexRoute.use("/auth", authRoute);
 indexRoute.use("/products", productRoute);
 indexRoute.use("/categories", categoryRoute);
 indexRoute.use("/orders", orderRoute);
-indexRoute.use("/carts", cartRoute);
+indexRoute.use("/cart", cartRoute);
 indexRoute.use("/inventory", inventoryRoute);
 indexRoute.use("/customers", customerRoute);
 
