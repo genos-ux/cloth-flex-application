@@ -99,17 +99,14 @@ export async function getAllProducts({page = 1, limit = 10, search, categoryId,s
 
     const conditions = [];
 
-    // search by product name
     if (search) {
         conditions.push(ilike(Product.name, `%${search}%`));
     }
 
-    // filter by category
     if (categoryId) {
         conditions.push(eq(Product.categoryId, categoryId));
     }
 
-    // filter by size
     if (size) {
         conditions.push(eq(Product.size, size));
     }
@@ -160,12 +157,10 @@ export async function updateProduct(
       ...data,
     };
 
-    // convert price
     if (data.price) {
       updateData.price = data.price.toString();
     }
 
-    // recompute inventory if quantity changes
     if (data.quantity !== undefined) {
       const { status, level } = calculateInventory(
           data.quantity

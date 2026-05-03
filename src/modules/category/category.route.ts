@@ -158,7 +158,7 @@ router.post(
 router.get(
     "/",
     ensureAuthenticated,
-    getAllCategoriesHandler
+    handler(getAllCategoriesHandler)
 );
 
 
@@ -189,7 +189,7 @@ router.get(
 router.get(
     "/:id",
     ensureAuthenticated,
-    getCategoryByIdHandler
+    handler(getCategoryByIdHandler)
 );
 
 
@@ -228,7 +228,7 @@ router.patch(
     "/:id",
     ensureAuthenticated,
     isAdmin,
-    updateCategoryHandler
+    handler(updateCategoryHandler)
 );
 
 
@@ -260,7 +260,7 @@ router.delete(
     "/:id",
     ensureAuthenticated,
     isAdmin,
-    deleteCategoryHandler
+    handler(deleteCategoryHandler)
 );
 
 export default router;
