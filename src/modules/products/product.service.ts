@@ -1,5 +1,5 @@
 import { db } from "../../config/db";
-import {Category, Product} from "../../db/schema";
+import {Category, Product, genderEnum} from "../../db/schema";
 import {and, desc, eq, ilike, sql} from "drizzle-orm";
 import {BadRequestException, NotFoundException} from "../../utils/exception";
 import {findProductById} from "../carts/cart.service.ts";
@@ -32,15 +32,7 @@ export function calculateInventory(quantity: number) {
   return { status, level };
 }
 
-export async function createProduct(data: {
-  name: string;
-  description: string;
-  price: number;
-  categoryId: string;
-  size: string;
-  quantity: number;
-  images: string[];
-}) {
+export async function createProduct(data: any) {
   try {
     const { status, level } = calculateInventory(
         data.quantity ?? 0
@@ -64,6 +56,7 @@ export async function createProduct(data: {
           categoryId: data.categoryId,
           size: data.size,
           quantity: data.quantity ?? 0,
+            gender: data.gender ?? "UNISEX",
           images: data.images,
             sku: generateSKU(data.name),
           status,
@@ -88,12 +81,13 @@ export async function createProduct(data: {
 
 
 
-export async function getAllProducts({page = 1, limit = 10, search, categoryId,size,}: {
+export async function getAllProducts({page = 1, limit = 10, search, categoryId,size,gender}: {
     page?: number;
     limit?: number;
     search?: string;
     categoryId?: string;
     size?: string;
+    gender?: string;
 }) {
     const offset = (page - 1) * limit;
 
@@ -109,6 +103,10 @@ export async function getAllProducts({page = 1, limit = 10, search, categoryId,s
 
     if (size) {
         conditions.push(eq(Product.size, size));
+    }
+
+    if (gender) {
+        conditions.push(eq(Product.gender, gender as any));
     }
 
     const products = await db
@@ -150,6 +148,7 @@ export async function updateProduct(
       size: string;
       quantity: number;
       images: string[];
+        gender: "MEN" | "WOMEN" | "UNISEX";
     }>
 ) {
   try {

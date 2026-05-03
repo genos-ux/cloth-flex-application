@@ -24,6 +24,12 @@ export const productStatusEnum = pgEnum("product_status", [
   "OUT_OF_STOCK",
 ]);
 
+export const genderEnum = pgEnum("gender", [
+  "MEN",
+  "WOMEN",
+  "UNISEX",
+]);
+
 
 export const User = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -69,6 +75,7 @@ export const Product = pgTable("products", {
   size: varchar("size", {
     length: 10,
   }).notNull(),
+  gender: genderEnum("gender").notNull().default("UNISEX"),
   quantity: integer("quantity")
       .notNull()
       .default(0),
@@ -116,7 +123,7 @@ export const orderStatusEnum = pgEnum("order_status", [
 export const Order = pgTable("orders", {
   id: uuid("id").defaultRandom().primaryKey(),
 
-  
+
   userId: uuid("user_id").references(() => User.id, {
     onDelete: "set null",
   }),

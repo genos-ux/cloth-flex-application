@@ -24,6 +24,8 @@ export const createProductSchema = z.object({
         .string()
         .min(1, "Size is required"),
 
+    gender: z.enum(["MEN", "WOMEN", "UNISEX"]),
+
     quantity: z
         .coerce
         .number()

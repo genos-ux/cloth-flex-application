@@ -38,6 +38,7 @@ export async function listProducts(req: Request, res: Response) {
     const search = req.query.search as string | undefined;
     const categoryId = req.query.categoryId as string | undefined;
     const size = req.query.size as string | undefined;
+    const gender = req.query.gender as string | undefined;
 
     const products = await getAllProducts({
         page,
@@ -45,6 +46,7 @@ export async function listProducts(req: Request, res: Response) {
         search,
         categoryId,
         size,
+        gender,
     });
 
     return successResponse(

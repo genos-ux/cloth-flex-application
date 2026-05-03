@@ -148,6 +148,10 @@ productRoute.get(
  *               size:
  *                 type: string
  *                 example: "XL"
+ *               gender:
+ *                 type: string
+ *                 enum: [MEN,WOMEN, UNISEX]
+ *                 example: MEN
  *               quantity:
  *                 type: integer
  *                 example: 12
