@@ -20,9 +20,7 @@ export function ensureAuthenticated(
   const token = req.cookies?.access_token;
 
   if (!token) {
-    throw new UnauthorizedException(
-      "Authentication required"
-    );
+    return next(new UnauthorizedException("Authentication required"));
   }
 
   try {
@@ -35,10 +33,7 @@ export function ensureAuthenticated(
 
     next();
   } catch (error) {
-    throw new BadRequestException(
-      "Invalid or expired token",
-      HttpStatus.UNAUTHORIZED
-    );
+    next(new BadRequestException("Invalid or expired token", HttpStatus.UNAUTHORIZED));
   }
 }
 
@@ -49,17 +44,11 @@ export function isAdmin(
   next: NextFunction
 ) {
   if (!req.user) {
-    throw new BadRequestException(
-      "Authentication required",
-      HttpStatus.UNAUTHORIZED
-    );
+    return next(new BadRequestException("Authentication required", HttpStatus.UNAUTHORIZED));
   }
 
   if (req.user.role !== "admin") {
-    throw new BadRequestException(
-      "Admin access required",
-      HttpStatus.FORBIDDEN
-    );
+    return next(new BadRequestException("Admin access required", HttpStatus.FORBIDDEN));
   }
 
   next();

@@ -53,20 +53,22 @@ export async function updateCategory(
         isVisible?: boolean;
     }
 ) {
+    if (data.name) {
+        const existingCategory = await db
+            .select()
+            .from(Category)
+            .where(eq(Category.name, data.name));
+
+        if (existingCategory.length > 0 && existingCategory[0]?.id !== id) {
+            throw new Error("Category name already exists");
+        }
+    }
+
     const [category] = await db
         .update(Category)
         .set(data)
         .where(eq(Category.id, id))
         .returning();
-
-    const existingCategory = await db
-        .select()
-        .from(Category)
-        .where(eq(Category.name, data.name!));
-
-    if (existingCategory.length > 0 && existingCategory[0]?.id !== id) {
-        throw new Error("Category name already exists");
-    }
 
     return category;
 }

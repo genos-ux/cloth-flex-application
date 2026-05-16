@@ -3,7 +3,7 @@ import { User, Order } from "../../db/schema";
 import { eq } from "drizzle-orm";
 
 export async function getCustomers() {
-    const users = await db.select().from(User);
+    const users = await db.select().from(User).where(eq(User.role, "customer"));
     const orders = await db.select().from(Order);
 
     return users.map((user) => {

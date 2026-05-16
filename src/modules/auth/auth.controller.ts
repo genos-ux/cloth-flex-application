@@ -28,11 +28,6 @@ export async function register(req: Request) {
 
     const { name, email, password } = parsed.data;
 
-    if (!name || !email || !password) {
-
-        throw new BadRequestException('Name, email and password are required', HttpStatus.BAD_REQUEST);
-    }
-
     const existingUser = await findUserByEmail(email);
 
     if (existingUser) throw new BadRequestException('User already exists', HttpStatus.CONFLICT);

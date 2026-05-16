@@ -6,6 +6,7 @@ import {
     getOrderByIdHandler,
     getUserOrdersHandler,
     deleteOrderHandler,
+    getOrderStatsHandler,
 } from "./order.controller";
 
 import {
@@ -136,7 +137,7 @@ orderRoute.get(
     "/stats",
     ensureAuthenticated,
     isAdmin,
-    handler(getOrderByIdHandler)
+    handler(getOrderStatsHandler)
 );
 
 /**

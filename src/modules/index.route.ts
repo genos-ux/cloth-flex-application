@@ -6,6 +6,7 @@ import cartRoute from "./carts/cart.route.ts";
 import inventoryRoute from "./inventory/inventory.route.ts";
 import orderRoute from "./orders/order.route.ts";
 import customerRoute from "./customers/customers.route.ts";
+import paymentRoute from "./payment/payment.route";
 
 const indexRoute: Router = Router();
 
@@ -16,6 +17,7 @@ indexRoute.use("/orders", orderRoute);
 indexRoute.use("/cart", cartRoute);
 indexRoute.use("/inventory", inventoryRoute);
 indexRoute.use("/customers", customerRoute);
+indexRoute.use("/payments", paymentRoute);
 
 
 export default indexRoute;

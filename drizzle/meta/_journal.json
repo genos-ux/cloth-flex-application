@@ -120,6 +120,13 @@
       "when": 1777845497281,
       "tag": "0016_thin_stingray",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1778957278654,
+      "tag": "0017_outstanding_harpoon",
+      "breakpoints": true
     }
   ]
 }

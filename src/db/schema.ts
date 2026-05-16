@@ -195,3 +195,29 @@ export const CartItem = pgTable("cart_items", {
   createdAt: timestamp("created_at")
       .defaultNow(),
 });
+
+export const paymentStatusEnum = pgEnum("payment_status", [
+  "PENDING",
+  "SUCCESS",
+  "FAILED",
+]);
+
+export const Payment = pgTable("payments", {
+  id: uuid("id").defaultRandom().primaryKey(),
+
+  orderId: uuid("order_id")
+      .references(() => Order.id, { onDelete: "cascade" })
+      .notNull(),
+
+  email: varchar("email", { length: 255 }).notNull(),
+
+  amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
+
+  reference: varchar("reference", { length: 255 }).unique().notNull(),
+
+  status: paymentStatusEnum("status").default("PENDING").notNull(),
+
+  paystackResponse: jsonb("paystack_response"),
+
+  createdAt: timestamp("created_at").defaultNow(),
+});

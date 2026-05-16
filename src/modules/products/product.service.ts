@@ -10,7 +10,6 @@ function generateSKU(name: string) {
     return `${prefix}-${random}`;
 }
 
-
 export function calculateInventory(quantity: number) {
   let status: "IN_STOCK" | "LOW" | "CRITICAL" | "OUT_OF_STOCK";
   let level: number;
@@ -77,9 +76,6 @@ export async function createProduct(data: any) {
     throw err;
   }
 }
-
-
-
 
 export async function getAllProducts({page = 1, limit = 10, search, categoryId,size,gender}: {
     page?: number;
