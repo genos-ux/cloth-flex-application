@@ -12,6 +12,7 @@ import { HttpStatus } from "../../utils/httpStatus";
 import { BadRequestException } from "../../utils/exception";
 import { loginSchema, registerSchema } from "./auth.validation";
 
+
 /*
    REGISTER
 */
@@ -43,9 +44,13 @@ export async function register(req: Request) {
         role: "customer",
     });
 
+    if(!user) throw new Error("User creation failed");
+
+    const { password: _, ...userWithoutPassword } = user;
+
     return successResponse(
         "User registered successfully",
-        null,
+        userWithoutPassword,
         201
     );
 }
