@@ -74,5 +74,5 @@ export const deleteOrderHandler = async (req: Request, res: Response) => {
         throw new BadRequestException("Order not found");
     }
 
-    return successResponse("Order deleted successfully", null, 204);
+    return successResponse("Order deleted successfully", null, 200);
 };

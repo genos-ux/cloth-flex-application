@@ -1,13 +1,13 @@
 import { db } from "../../config/db";
-import {Category, Product, genderEnum} from "../../db/schema";
-import {and, desc, eq, ilike, sql} from "drizzle-orm";
-import {BadRequestException, NotFoundException} from "../../utils/exception";
-import {findProductById} from "../carts/cart.service.ts";
+import { Category, Product, genderEnum } from "../../db/schema";
+import { and, desc, eq, ilike, sql } from "drizzle-orm";
+import { BadRequestException, NotFoundException } from "../../utils/exception";
+import { findProductById } from "../carts/cart.service.ts";
 
 function generateSKU(name: string) {
-    const prefix = name.slice(0, 4).toUpperCase();
-    const random = Math.random().toString(36).substring(2, 6).toUpperCase();
-    return `${prefix}-${random}`;
+  const prefix = name.slice(0, 4).toUpperCase();
+  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+  return `${prefix}-${random}`;
 }
 
 export function calculateInventory(quantity: number) {
@@ -34,41 +34,41 @@ export function calculateInventory(quantity: number) {
 export async function createProduct(data: any) {
   try {
     const { status, level } = calculateInventory(
-        data.quantity ?? 0
+      data.quantity ?? 0
     );
 
     const existingProduct = await db
-        .select()
-        .from(Product)
-        .where(eq(Product.name, data.name));
+      .select()
+      .from(Product)
+      .where(eq(Product.name, data.name));
 
     if (existingProduct.length > 0) {
       throw new BadRequestException("Product already exists");
     }
 
     const [product] = await db
-        .insert(Product)
-        .values({
-          name: data.name,
-          description: data.description,
-          price: data.price.toString(),
-          categoryId: data.categoryId,
-          size: data.size,
-          quantity: data.quantity ?? 0,
-            gender: data.gender ?? "UNISEX",
-          images: data.images,
-            sku: generateSKU(data.name),
-          status,
-          level,
-        })
-        .returning();
+      .insert(Product)
+      .values({
+        name: data.name,
+        description: data.description,
+        price: data.price.toString(),
+        categoryId: data.categoryId,
+        size: data.size,
+        quantity: data.quantity ?? 0,
+        gender: data.gender ?? "UNISEX",
+        images: data.images,
+        sku: generateSKU(data.name),
+        status,
+        level,
+      })
+      .returning();
 
     await db
-        .update(Category)
-        .set({
-          productsCount: sql`${Category.productsCount} + 1`,
-        })
-        .where(eq(Category.id, data.categoryId));
+      .update(Category)
+      .set({
+        productsCount: sql`${Category.productsCount} + 1`,
+      })
+      .where(eq(Category.id, data.categoryId));
 
     return product;
   } catch (err) {
@@ -77,51 +77,75 @@ export async function createProduct(data: any) {
   }
 }
 
-export async function getAllProducts({page = 1, limit = 10, search, categoryId,size,gender}: {
-    page?: number;
-    limit?: number;
-    search?: string;
-    categoryId?: string;
-    size?: string;
-    gender?: string;
+export async function getAllProducts({
+  page = 1,
+  limit = 10,
+  search,
+  categoryId,
+  size,
+  gender,
+}: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  categoryId?: string;
+  size?: string;
+  gender?: string;
 }) {
-    const offset = (page - 1) * limit;
 
-    const conditions = [];
+  const offset = (page - 1) * limit;
 
-    if (search) {
-        conditions.push(ilike(Product.name, `%${search}%`));
-    }
+  const conditions = [];
 
-    if (categoryId) {
-        conditions.push(eq(Product.categoryId, categoryId));
-    }
+  if (search) {
+    conditions.push(ilike(Product.name, `%${search}%`));
+  }
 
-    if (size) {
-        conditions.push(eq(Product.size, size));
-    }
+  if (categoryId) {
+    conditions.push(eq(Product.categoryId, categoryId));
+  }
 
-    if (gender) {
-        conditions.push(eq(Product.gender, gender as any));
-    }
+  if (size) {
+    conditions.push(eq(Product.size, size));
+  }
 
-    const products = await db
-        .select()
-        .from(Product)
-        .where(conditions.length ? and(...conditions) : undefined)
-        .limit(limit)
-        .offset(offset);
+  if (gender) {
+    conditions.push(eq(Product.gender, gender as any));
+  }
 
-    return products;
+  const where = conditions.length
+    ? and(...conditions)
+    : undefined;
+
+  const [products, totalResult] = await Promise.all([
+    db.select()
+      .from(Product)
+      .where(where)
+      .limit(limit)
+      .offset(offset),
+
+    db.select({
+      total: sql<number>`count(*)`,
+    })
+      .from(Product)
+      .where(where),
+  ]);
+
+  const total = Number(totalResult[0]?.total ?? 0);
+
+  return {
+    products,
+    total,
+  };
 }
 
 
 export async function getProductById(id: string) {
   try {
     const [product] = await db
-        .select()
-        .from(Product)
-        .where(eq(Product.id, id));
+      .select()
+      .from(Product)
+      .where(eq(Product.id, id));
 
     if (!product)
       throw new NotFoundException("Product not found");
@@ -135,17 +159,17 @@ export async function getProductById(id: string) {
 
 
 export async function updateProduct(
-    id: string,
-    data: Partial<{
-      name: string;
-      description: string;
-      price: number;
-      categoryId: string;
-      size: string;
-      quantity: number;
-      images: string[];
-        gender: "MEN" | "WOMEN" | "UNISEX";
-    }>
+  id: string,
+  data: Partial<{
+    name: string;
+    description: string;
+    price: number;
+    categoryId: string;
+    size: string;
+    quantity: number;
+    images: string[];
+    gender: "MEN" | "WOMEN" | "UNISEX";
+  }>
 ) {
   try {
     let updateData: any = {
@@ -158,7 +182,7 @@ export async function updateProduct(
 
     if (data.quantity !== undefined) {
       const { status, level } = calculateInventory(
-          data.quantity
+        data.quantity
       );
 
       updateData.status = status;
@@ -166,10 +190,10 @@ export async function updateProduct(
     }
 
     const [product] = await db
-        .update(Product)
-        .set(updateData)
-        .where(eq(Product.id, id))
-        .returning();
+      .update(Product)
+      .set(updateData)
+      .where(eq(Product.id, id))
+      .returning();
 
     return product;
   } catch (err) {
@@ -191,12 +215,12 @@ export async function addMultipleImages(productId: string, imageUrls: string[]) 
   const updatedImages = [...existingImages, ...imageUrls];
 
   const [updatedProduct] = await db
-      .update(Product)
-      .set({
-        images: updatedImages,
-      })
-      .where(eq(Product.id, productId))
-      .returning();
+    .update(Product)
+    .set({
+      images: updatedImages,
+    })
+    .where(eq(Product.id, productId))
+    .returning();
 
   return {
     success: true,
@@ -209,19 +233,19 @@ export async function addMultipleImages(productId: string, imageUrls: string[]) 
 export async function deleteProduct(id: string) {
   try {
     const [product] = await db
-        .delete(Product)
-        .where(eq(Product.id, id))
-        .returning();
+      .delete(Product)
+      .where(eq(Product.id, id))
+      .returning();
 
     if (!product)
       throw new NotFoundException("Product not found");
 
     await db
-        .update(Category)
-        .set({
-          productsCount: sql`${Category.productsCount} - 1`,
-        })
-        .where(eq(Category.id, product.categoryId));
+      .update(Category)
+      .set({
+        productsCount: sql`${Category.productsCount} - 1`,
+      })
+      .where(eq(Category.id, product.categoryId));
 
     return {
       message: "Product deleted successfully",

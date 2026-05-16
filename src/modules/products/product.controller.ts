@@ -40,24 +40,15 @@ export async function listProducts(req: Request, res: Response) {
     const size = req.query.size as string | undefined;
     const gender = req.query.gender as string | undefined;
 
-    const products = await getAllProducts({
+    const { products, total } = await getAllProducts({ page, limit, search, categoryId, size, gender });
+
+    return successResponse("Products retrieved successfully", {
         page,
         limit,
-        search,
-        categoryId,
-        size,
-        gender,
-    });
-
-    return successResponse(
-        "Products retrieved successfully",
-        {
-            page,
-            limit,
-            data: products,
-        },
-        200
-    );
+        total,
+        totalPages: Math.ceil(total / limit),
+        data: products,
+    }, 200);
 }
 
 
